@@ -43,6 +43,21 @@ my @tests = (
   },
 
   {
+    given     => [ qw(BasicFoo BasicBar) ],
+    want_name => 'MXCC::Test::BasicFoo::BasicBar',
+    want_can  => [ qw(foo bar) ],
+  },
+
+  {
+    # Here, we assert that we get the thing from the previous test, because
+    # they have equivalent givens, despite ordering differences.
+    # -- rjbs, 2011-08-08
+    given     => [ qw(BasicBar BasicFoo) ],
+    want_name => 'MXCC::Test::BasicFoo::BasicBar',
+    want_can  => [ qw(foo bar) ],
+  },
+
+  {
     given     => [
       [ Parameterized => XYZZY => { option => 'xyzzy' } ],
     ],
@@ -60,11 +75,15 @@ my @tests = (
   },
 
   {
+    # Here, we assert that we get the thing from the previous test, because
+    # they have equivalent givens, despite ordering differences -- this time,
+    # with parameterization.
+    # -- rjbs, 2011-08-08
     given     => [
       [ Parameterized => Smitty => { option => 'smitty' } ],
       'BasicFoo',
     ],
-    want_name => 'MXCC::Test::Smitty::BasicFoo',
+    want_name => 'MXCC::Test::BasicFoo::Smitty',
     want_can  => [ qw(foo method_smitty) ],
   },
 );

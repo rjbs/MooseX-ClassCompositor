@@ -148,7 +148,7 @@ sub _memoization_key {
       push @k, $arg;
     }
   }
-  my $key = join "; ", @k;
+  my $key = join "; ", sort @k;
   return $key;
 }
 
