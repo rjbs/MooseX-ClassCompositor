@@ -1,5 +1,6 @@
 package MooseX::ClassCompositor;
 use Moose;
+# ABSTRACT: a factory that builds classes from roles
 
 use namespace::autoclean;
 
