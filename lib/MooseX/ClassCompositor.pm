@@ -263,5 +263,11 @@ sub __hash_to_string {
   join ", " => @k;
 }
 
+=head1 THANKS
+
+Thanks to Pobox.com for sponsoring the development of this library.
+
+=cut
+
 __PACKAGE__->meta->make_immutable;
 1;
