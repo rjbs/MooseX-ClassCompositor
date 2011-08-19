@@ -66,6 +66,16 @@ my @tests = (
   },
 
   {
+    # here we prefabricate the parameterized role and feed it in whole
+    # -- mjd, 2011-08-19
+    given     => [
+      [ $canTransfer => "Verlaine" ],
+    ],
+    want_name => 'MXCC::Test::Verlaine',
+    want_can  => [ qw(method_xyzzy) ],
+  },
+
+  {
     given     => [
       'BasicFoo',
       [ Parameterized => Smitty => { option => 'smitty' } ],
@@ -85,6 +95,29 @@ my @tests = (
     ],
     want_name => 'MXCC::Test::BasicFoo::Smitty',
     want_can  => [ qw(foo method_smitty) ],
+  },
+
+  {
+    # here we prefabricate the parameterized role and feed it in whole
+    # -- mjd, 2011-08-19
+    given     => [
+      'BasicFoo',
+      [ $canTransfer => "Verlaine" ],
+    ],
+    want_name => 'MXCC::Test::BasicFoo::Verlaine',
+    want_can  => [ qw(foo method_xyzzy) ],
+  },
+
+  {
+    # Here, we assert that we get the thing from the previous test, because
+    # they have equivalent givens, despite ordering differences
+    # -- mjd, 2011-08-19
+    given     => [
+      [ $canTransfer => "Verlaine" ],
+      'BasicFoo',
+    ],
+    want_name => 'MXCC::Test::BasicFoo::Verlaine',
+    want_can  => [ qw(foo method_xyzzy) ],
   },
 );
 

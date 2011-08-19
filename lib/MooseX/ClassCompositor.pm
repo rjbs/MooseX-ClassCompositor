@@ -151,17 +151,26 @@ has _memoization_table => (
       'ApplicationName',   #  <-- will not be touched
       { ...param... },
     ],
+
+    [
+      $role_object,        # generated elsewhere
+      'ApplicationName',   #  <-- will not be touched
+    ],
   );
 
 This method will return a class with the roles passed to it.  They can be given
 either as names (which will be expanded according to C<L</role_prefixes>>) or
-as arrayrefs containing a role name, application name, and hashref of
-parameters.  In the arrayref form, the application name is just a name used to
-uniquely identify this application of a parameterized role, so that they can be
-applied multiple times with each application accounted for internally.
+as arrayrefs.
 
-Note that at present, passing Moose::Meta::Role objects is B<not> supported.
-This should change in the future.
+Arrayrefs may include a parameterized role name, application name, and
+hashref of parameters.  In this form, the application name is
+just a name used to uniquely identify this application of a
+parameterized role, so that they can be applied multiple times with
+each application accounted for internally.
+
+Arrayrefs may also include a prefabriacted role object and an
+application name.  The application name is as in the previous
+paragraph.
 
 =cut
 
@@ -185,16 +194,22 @@ sub class_for {
   while (@args) {
     my $name = shift @args;
     if (ref $name) {
-      my ($role_name, $moniker, $params) = @$name;
+      my $role_object;
 
-      my $full_name = $self->_rewrite_roles($role_name);
-      Class::MOP::load_class($full_name);
-      my $role_object = $full_name->meta->generate_role(
-        parameters => $params,
-      );
+      if (@$name == 3) {
+        (my $role_name, $name, my $params) = @$name;
+
+        my $full_name = $self->_rewrite_roles($role_name);
+        Class::MOP::load_class($full_name);
+        $role_object = $full_name->meta->generate_role(
+          parameters => $params,
+         );
+
+      } elsif (@$name == 2) {
+        ($role_object, $name) = @$name;
+      }
 
       push @roles, $role_object;
-      $name = $moniker;
     } else {
       push @role_class_names, $name;
     }
@@ -243,7 +258,11 @@ sub _memoization_key {
     my $arg = shift @args;
     if (ref $arg) {
       my ($role_name, $moniker, $params) = @$arg;
-      push @k, "$moniker : { " . __hash_to_string($params) . " }";
+      if (defined $params) {
+        push @k, "$moniker : { " . __hash_to_string($params) . " }";
+      } else {
+        push @k, $moniker;
+      }
     } else {
       push @k, $arg;
     }
