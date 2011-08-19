@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          fix boneheaded arrangement of documentation; synopsis now comes FIRST
+          and is labeled "SYNOPSIS" instead of "ABSTRACT"
 
 0.001     2011-08-19 11:29:33 America/New_York
           first release, split from internal Pobox projects

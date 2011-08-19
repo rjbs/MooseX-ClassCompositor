@@ -11,7 +11,7 @@ use MooseX::Types::Perl qw(PackageName);
 use Scalar::Util qw(refaddr);
 use String::RewritePrefix;
 
-=head1 ABSTRACT
+=head1 SYNOPSIS
 
   my $comp = MooseX::ClassCompositor->new({
     class_basename  => 'MyApp::Class',
