@@ -4,18 +4,76 @@ use Moose;
 
 use namespace::autoclean;
 
-use Memoize;
-use MooseX::StrictConstructor::Trait::Class;
 use Moose::Util qw(apply_all_roles);
 use Moose::Util::MetaRole ();
+use MooseX::StrictConstructor::Trait::Class;
+use MooseX::Types::Perl qw(PackageName);
 use Scalar::Util qw(refaddr);
 use String::RewritePrefix;
 
+=head1 ABSTRACT
+
+  my $comp = MooseX::ClassCompositor->new({
+    class_basename  => 'MyApp::Class',
+    class_metaroles => {
+      class => [ 'MooseX::StrictConstructor::Trait::Class' ],
+    },
+    role_prefixes   => {
+      ''  => 'MyApp::Role::',
+      '=' => '',
+    },
+  });
+
+  my $class = $comp->class_for( qw( PieEater ContestWinner ) );
+
+  my $object = $class->new({
+    pie_type => 'banana',
+    place    => '2nd',
+  });
+
+=head1 OVERVIEW
+
+A MooseX::ClassCompositor is a class factory.  If you think using a class
+factory will make you feel like a filthy "enterprise" programmer, maybe you
+should turn back now.
+
+The compositor has a C<L</class_for>> method that builds a class by combining a
+list of roles with L<Moose::Object>, applying any supplied metaclass, and
+producing an arbitrary-but-human-scannable name.  The metaclass is then
+made immutable, the operation is memoized, and the class name is returned.
+
+In the L</SYNOPSIS> above, you can see all the major features used:
+C<class_metaroles> to enable strict constructors, C<role_prefixes> to use
+L<String::RewritePrefix> to expand role name shorthand, and C<class_basename>
+to pick a namespace under which to put constructed classes.
+
+Not shown is the C<L</known_classes> method, which returns a list of pairs
+describing all the classes that the factory has constructed.  This method can
+be useful for debugging and other somewhat esoteric purposes like
+serialization.
+
+=cut
+
+=attr class_basename
+
+This attribute must be given, and must be a valid Perl package name.
+Constructed classes will all be under this namespace.
+
+=cut
+
 has class_basename => (
   is  => 'ro',
-  isa => 'Str', # should be ~Perl::PkgName -- rjbs, 2011-08-05
+  isa => PackageName,
   required => 1,
 );
+
+=attr class_metaroles
+
+This attribute, if given, must be a hashref of class metaroles that will be
+applied to newly-constructed classes with
+L<Moose::Util::MetaRole::apply_metaroles>.
+
+=cut
 
 has class_metaroles => (
   reader  => '_class_metaroles',
@@ -23,26 +81,42 @@ has class_metaroles => (
   default => sub {  {}  },
 );
 
+=attr known_classes
+
+This attribute stores a mapping of class names to the parameters used to
+construct them.  The C<known_classes> method returns its contents as a list of
+pairs.
+
+=cut
+
 has known_classes => (
   reader   => '_known_classes',
   isa      => 'HashRef',
   traits   => [ 'Hash' ],
   handles  => {
-    learn_class   => 'set',
+    _learn_class   => 'set',
     known_classes => 'elements',
   },
   init_arg => undef,
+  default  => sub {  {}  },
 );
 
+=attr role_prefixes
+
+This attribute is used as the arguments to L<String::RewritePrefix> for
+expanding role names passed to the compositor's L<class_for> method.
+
+=cut
+
 has role_prefixes => (
-  is  => 'ro',
-  isa => 'HashRef',
+  reader  => '_role_prefixes',
+  isa     => 'HashRef',
   default => sub {  {}  },
 );
 
 sub _rewrite_roles {
   my ($self, @in) = @_;
-  return String::RewritePrefix->rewrite($self->role_prefixes, @in);
+  return String::RewritePrefix->rewrite($self->_role_prefixes, @in);
 }
 
 has serial_counter => (
@@ -65,6 +139,31 @@ has _memoization_table => (
   },
   init_arg => undef,
 );
+
+=method class_for
+
+  my $class = $compositor->class_for(
+
+    'Role::Name', # <-- will be expanded with role_prefixes
+
+    [
+      'Param::Role::Name', #  <-- will be expanded with role_prefixes
+      'ApplicationName',   #  <-- will not be touched
+      { ...param... },
+    ],
+  );
+
+This method will return a class with the roles passed to it.  They can be given
+either as names (which will be expanded according to C<L</role_prefixes>>) or
+as arrayrefs containing a role name, application name, and hashref of
+parameters.  In the arrayref form, the application name is just a name used to
+uniquely identify this application of a parameterized role, so that they can be
+applied multiple times with each application accounted for internally.
+
+Note that at present, passing Moose::Meta::Role objects is B<not> supported.
+This should change in the future.
+
+=cut
 
 sub class_for {
   my ($self, @args) = @_;
@@ -129,7 +228,7 @@ sub class_for {
 
   $class->make_immutable;
 
-  $self->learn_class($name, \@orig_args);
+  $self->_learn_class($name, \@orig_args);
   $self->_set_class_for_key($memo_key, $name);
 
   return $class->name;
@@ -164,5 +263,5 @@ sub __hash_to_string {
   join ", " => @k;
 }
 
-
+__PACKAGE__->meta->make_immutable;
 1;
