@@ -47,7 +47,7 @@ C<class_metaroles> to enable strict constructors, C<role_prefixes> to use
 L<String::RewritePrefix> to expand role name shorthand, and C<class_basename>
 to pick a namespace under which to put constructed classes.
 
-Not shown is the C<L</known_classes> method, which returns a list of pairs
+Not shown is the C<L</known_classes>> method, which returns a list of pairs
 describing all the classes that the factory has constructed.  This method can
 be useful for debugging and other somewhat esoteric purposes like
 serialization.
