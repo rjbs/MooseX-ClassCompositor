@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.003     2011-12-21 20:27:43 America/New_York
           add the fixed_roles parameter
 
 0.002     2011-08-19 14:13:41 America/New_York
