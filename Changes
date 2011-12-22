@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          add the fixed_roles parameter
 
 0.002     2011-08-19 14:13:41 America/New_York
           fix boneheaded arrangement of documentation; synopsis now comes FIRST

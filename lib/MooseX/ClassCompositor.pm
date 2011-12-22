@@ -119,6 +119,19 @@ sub _rewrite_roles {
   return String::RewritePrefix->rewrite($self->_role_prefixes, @in);
 }
 
+=attr fixed_roles
+
+This attribute may be initialized with an arrayref of role names.  These roles
+will I<always> be composed in the classes built by the compositor.
+
+=cut
+
+has fixed_roles => (
+  reader  => '_fixed_roles',
+  isa     => 'ArrayRef',
+  default => sub {  []  },
+);
+
 has serial_counter => (
   reader  => '_serial_counter',
   isa     => 'Str',
@@ -207,7 +220,10 @@ sub class_for {
 
   my $name = join q{::}, $self->class_basename, @all_names;
 
-  @role_class_names = $self->_rewrite_roles(@role_class_names);
+  @role_class_names = (
+    $self->_rewrite_roles(@role_class_names),
+    @{ $self->_fixed_roles },
+  );
 
   Class::MOP::load_class($_) for @role_class_names;
 
