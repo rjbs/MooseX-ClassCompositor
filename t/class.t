@@ -110,7 +110,7 @@ for my $test (@tests) {
     class_metaroles => {
       class => [ 'MooseX::StrictConstructor::Trait::Class' ],
     },
-    fixed_roles => [ 't::lib::BasicFoo' ],
+    fixed_roles => [ 'BasicFoo' ],
     role_prefixes   => {
       '' => 't::lib::',
     },

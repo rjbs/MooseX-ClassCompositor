@@ -124,6 +124,8 @@ sub _rewrite_roles {
 This attribute may be initialized with an arrayref of role names.  These roles
 will I<always> be composed in the classes built by the compositor.
 
+These names I<will> be rewritten by the role prefixes.
+
 =cut
 
 has fixed_roles => (
@@ -221,8 +223,10 @@ sub class_for {
   my $name = join q{::}, $self->class_basename, @all_names;
 
   @role_class_names = (
-    $self->_rewrite_roles(@role_class_names),
-    @{ $self->_fixed_roles },
+    $self->_rewrite_roles(
+      @role_class_names,
+      @{ $self->_fixed_roles },
+    ),
   );
 
   Class::MOP::load_class($_) for @role_class_names;
