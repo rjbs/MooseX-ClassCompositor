@@ -239,12 +239,12 @@ sub class_for {
     superclasses => [ 'Moose::Object' ],
   ));
 
-  apply_all_roles($class, @role_class_names, map $_->name, @roles);
-
   $class = Moose::Util::MetaRole::apply_metaroles(
     for => $class->name,
     class_metaroles => $self->_class_metaroles,
   );
+
+  apply_all_roles($class, @role_class_names, map $_->name, @roles);
 
   $class->make_immutable;
 
