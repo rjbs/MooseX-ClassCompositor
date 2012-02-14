@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.004     2012-02-14 16:45:48 America/New_York
           [CRITICAL BUG FIX]
           apply metaroles before other roles, to avoid losing minor details
           like method modifiers!
