@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          [CRITICAL BUG FIX]
+          apply metaroles before other roles, to avoid losing minor details
+          like method modifiers!
 
 0.003     2011-12-21 20:27:43 America/New_York
           add the fixed_roles parameter
