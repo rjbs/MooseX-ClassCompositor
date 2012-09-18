@@ -115,8 +115,12 @@ has role_prefixes => (
 );
 
 sub _rewrite_roles {
-  my ($self, @in) = @_;
-  return String::RewritePrefix->rewrite($self->_role_prefixes, @in);
+  my $self = shift;
+  map {
+    blessed $_
+      ? $_->name  # no attempt to rewrite
+      : String::RewritePrefix->rewrite($self->_role_prefixes, $_)
+  } @_;
 }
 
 =attr fixed_roles
@@ -199,7 +203,7 @@ sub class_for {
 
   while (@args) {
     my $name = shift @args;
-    if (ref $name) {
+    if (ref $name eq 'ARRAY') {
       my ($role_name, $moniker, $params) = @$name;
 
       my $full_name = $self->_rewrite_roles($role_name);
@@ -210,6 +214,9 @@ sub class_for {
 
       push @roles, $role_object;
       $name = $moniker;
+    } elsif (blessed $name and $name->DOES('Moose::Meta::Role')) {
+      push @role_class_names, $name;
+      $name = $name->name; # for @all_names
     } else {
       push @role_class_names, $name;
     }
@@ -261,9 +268,11 @@ sub _memoization_key {
   my @k;
   while (@args) {
     my $arg = shift @args;
-    if (ref $arg) {
+    if (ref $arg eq 'ARRAY') {
       my ($role_name, $moniker, $params) = @$arg;
       push @k, "$moniker : { " . __hash_to_string($params) . " }";
+    } elsif (blessed $arg and $arg->DOES('Moose::Meta::Role')) {
+      push @k, $arg->name;
     } else {
       push @k, $arg;
     }

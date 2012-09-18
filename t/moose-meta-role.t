@@ -1,62 +1,24 @@
+use strict;
+use warnings;
+
 use Test::More;
-use Data::OptList;
 use MooseX::ClassCompositor;
+use t::lib::BasicBar;
 
-my $monkey_is_fed = undef;
+my $comp_2 = MooseX::ClassCompositor->new({
+ class_basename  => 'MXCC::Test',
+ class_metaroles => {
+	class => [ 'MooseX::StrictConstructor::Trait::Class' ],
+ },
+ fixed_roles => [ 'BasicFoo' ],
+ role_prefixes   => {
+	'' => 't::lib::',
+ },
+});
 
-BEGIN {
-	package Local::My::Monkey;
-	use Moose;
-	sub feed {
-		$monkey_is_fed = pop;
-	}
-}
+my $class = $comp_2->class_for( t::lib::BasicBar->meta );
 
-BEGIN {
-	package Local::My::MonkeyFeeding;
-	use Moose::Role;
-	requires qw(monkey);
-	requires qw(food);
-	sub feed_monkey {
-		my $self = shift;
-		$self->monkey->feed( $self->food );
-	}
-}
+ok($class->does('t::lib::BasicFoo'));
+ok($class->does('t::lib::BasicBar'));
 
-sub methods {
-	Moose::Meta::Role->create_anon_role(
-		methods => ( ref $_[0] eq 'HASH' ? $_[0] : +{@_} ),
-	);
-}
-
-sub attributes {
-	my %A = map {
-		$_->[0] => Moose::Meta::Attribute->new(
-			$_->[0],
-			%{ $_->[1] || +{is=>'ro'} },
-		);
-	} @{ Data::OptList::mkopt(\@_) };
-	Moose::Meta::Role->create_anon_role(attributes => \%A);
-}
-
-my $comp = MooseX::ClassCompositor->new(class_basename => 'Local::My');
-
-my $class = $comp->class_for(
-	'Local::My::MonkeyFeeding',
-	attributes(qw( food monkey )),
-	methods( answer => sub { 42 } ),
-);
-
-my $obj = $class->new(
-	food   => 'bananas',
-	monkey => Local::My::Monkey->new,
-);
-
-can_ok($obj, qw( food monkey feed_monkey answer ));
-
-$obj->feed_monkey;
-is($monkey_is_fed, $obj->food);
-
-is($obj->answer, 42);
-
-done_testing();
+done_testing;
