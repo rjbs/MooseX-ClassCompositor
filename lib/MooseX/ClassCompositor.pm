@@ -121,10 +121,12 @@ sub _rewrite_roles {
 
 =attr fixed_roles
 
-This attribute may be initialized with an arrayref of role names.  These roles
-will I<always> be composed in the classes built by the compositor.
+This attribute may be initialized with an arrayref of role names and/or
+L<Moose::Meta::Role> objects.  These roles will I<always> be composed in
+the classes built by the compositor.
 
-These names I<will> be rewritten by the role prefixes.
+Role names (but not Moose::Meta::Role objects) I<will> be rewritten by
+the role prefixes.
 
 =cut
 
@@ -159,8 +161,9 @@ has _memoization_table => (
 
   my $class = $compositor->class_for(
 
-    'Role::Name', # <-- will be expanded with role_prefixes
-
+    'Role::Name',          #  <-- will be expanded with role_prefixes
+    Other::Role->meta,     #  <-- will not be touched
+    
     [
       'Param::Role::Name', #  <-- will be expanded with role_prefixes
       'ApplicationName',   #  <-- will not be touched
@@ -169,14 +172,12 @@ has _memoization_table => (
   );
 
 This method will return a class with the roles passed to it.  They can be given
-either as names (which will be expanded according to C<L</role_prefixes>>) or
-as arrayrefs containing a role name, application name, and hashref of
-parameters.  In the arrayref form, the application name is just a name used to
-uniquely identify this application of a parameterized role, so that they can be
-applied multiple times with each application accounted for internally.
-
-Note that at present, passing Moose::Meta::Role objects is B<not> supported.
-This should change in the future.
+either as names (which will be expanded according to C<L</role_prefixes>>), as
+L<Moose::Meta::Role> objects, or as arrayrefs containing a role name,
+application name, and hashref of parameters.  In the arrayref form, the
+application name is just a name used to uniquely identify this application of
+a parameterized role, so that they can be applied multiple times with each
+application accounted for internally.
 
 =cut
 
