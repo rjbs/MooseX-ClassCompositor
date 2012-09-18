@@ -24,28 +24,34 @@ BEGIN {
 }
 
 sub methods {
-	Moose::Meta::Role->create_anon_role(
-		methods => ( ref $_[0] eq 'HASH' ? $_[0] : +{@_} ),
-	);
+	my $r = Moose::Meta::Role->create_anon_role();
+	while (@_) {
+		my $name = shift;
+		my $code = ref $_[0] ? shift : sub { +return };
+		$r->add_method($name, $code);
+	}
+	return $r;
 }
 
 sub attributes {
-	my %A = map {
-		$_->[0] => Moose::Meta::Attribute->new(
-			$_->[0],
-			%{ $_->[1] || +{is=>'ro'} },
-		);
-	} @{ Data::OptList::mkopt(\@_) };
-	Moose::Meta::Role->create_anon_role(attributes => \%A);
+	my $r = Moose::Meta::Role->create_anon_role();
+	while (@_) {
+		my $name = shift;
+		my $opts = ref $_[0] ? shift : +{ is => 'ro' };
+		$r->add_attribute($name, %$opts);
+		$r->add_method($name, sub { +return });  # why needed??
+	}
+	return $r;
 }
 
 my $comp = MooseX::ClassCompositor->new(class_basename => 'Local::My');
 
-my $class = $comp->class_for(
-	'Local::My::MonkeyFeeding',
-	attributes(qw( food monkey )),
+my @roles = (
 	methods( answer => sub { 42 } ),
+	attributes(qw( food monkey )),
+	'Local::My::MonkeyFeeding'->meta,
 );
+my $class = $comp->class_for(@roles);
 
 my $obj = $class->new(
 	food   => 'bananas',
@@ -54,9 +60,10 @@ my $obj = $class->new(
 
 can_ok($obj, qw( food monkey feed_monkey answer ));
 
+isa_ok($obj->monkey, 'Local::My::Monkey', '$obj->monkey');
 $obj->feed_monkey;
-is($monkey_is_fed, $obj->food);
+is($monkey_is_fed, $obj->food, 'interaction between composed roles works');
 
-is($obj->answer, 42);
+is($obj->answer, 42, '$obj->answer == 42');
 
 done_testing();

@@ -116,11 +116,7 @@ has role_prefixes => (
 
 sub _rewrite_roles {
   my $self = shift;
-  map {
-    blessed $_
-      ? $_->name  # no attempt to rewrite
-      : String::RewritePrefix->rewrite($self->_role_prefixes, $_)
-  } @_;
+  String::RewritePrefix->rewrite($self->_role_prefixes, @_);
 }
 
 =attr fixed_roles
@@ -215,8 +211,8 @@ sub class_for {
       push @roles, $role_object;
       $name = $moniker;
     } elsif (blessed $name and $name->DOES('Moose::Meta::Role')) {
-      push @role_class_names, $name;
-      $name = $name->name; # for @all_names
+      push @roles, $name;
+      $name = $name->name;
     } else {
       push @role_class_names, $name;
     }
