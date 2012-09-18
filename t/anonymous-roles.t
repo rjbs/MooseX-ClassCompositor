@@ -44,7 +44,10 @@ sub attributes {
 	return $r;
 }
 
-my $comp = MooseX::ClassCompositor->new(class_basename => 'Local::My');
+my $comp = MooseX::ClassCompositor->new(
+	class_basename => 'Local::My',
+	fixed_roles    => [ methods(quux => sub { 999 }) ],
+);
 
 my @roles = (
 	methods( answer => sub { 42 } ),
@@ -58,12 +61,13 @@ my $obj = $class->new(
 	monkey => Local::My::Monkey->new,
 );
 
-can_ok($obj, qw( food monkey feed_monkey answer ));
+can_ok($obj, qw( food monkey feed_monkey answer quux ));
 
 isa_ok($obj->monkey, 'Local::My::Monkey', '$obj->monkey');
 $obj->feed_monkey;
 is($monkey_is_fed, $obj->food, 'interaction between composed roles works');
 
 is($obj->answer, 42, '$obj->answer == 42');
+is($obj->quux,  999, '$obj->quux == 999 (via fixed role)');
 
 done_testing();

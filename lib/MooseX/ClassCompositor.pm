@@ -228,7 +228,7 @@ sub class_for {
   @role_class_names = (
     $self->_rewrite_roles(
       @role_class_names,
-      @{ $self->_fixed_roles },
+      grep { not ref } @{ $self->_fixed_roles },
     ),
   );
 
@@ -247,7 +247,7 @@ sub class_for {
     class_metaroles => $self->_class_metaroles,
   );
 
-  apply_all_roles($class, @role_class_names, map $_->name, @roles);
+  apply_all_roles($class, @role_class_names, map $_->name, @roles, grep { +ref } @{ $self->_fixed_roles });
 
   $class->make_immutable;
 
