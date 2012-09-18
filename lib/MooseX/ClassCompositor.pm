@@ -225,12 +225,15 @@ sub class_for {
 
   my $name = join q{::}, $self->class_basename, @all_names;
 
-  @role_class_names = (
-    $self->_rewrite_roles(
-      @role_class_names,
-      grep { not ref } @{ $self->_fixed_roles },
-    ),
-  );
+  for my $r (@{ $self->_fixed_roles }) {
+    if (blessed $r and $r->DOES('Moose::Meta::Role')) {
+      push @roles, $r;
+    } else {
+      push @role_class_names, $r;
+    }
+  }
+
+  @role_class_names = $self->_rewrite_roles(@role_class_names);
 
   Class::MOP::load_class($_) for @role_class_names;
 
@@ -247,7 +250,7 @@ sub class_for {
     class_metaroles => $self->_class_metaroles,
   );
 
-  apply_all_roles($class, @role_class_names, map $_->name, @roles, grep { +ref } @{ $self->_fixed_roles });
+  apply_all_roles($class, @role_class_names, map $_->name, @roles);
 
   $class->make_immutable;
 
