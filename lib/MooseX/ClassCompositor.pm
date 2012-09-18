@@ -115,16 +115,18 @@ has role_prefixes => (
 );
 
 sub _rewrite_roles {
-  my ($self, @in) = @_;
-  return String::RewritePrefix->rewrite($self->_role_prefixes, @in);
+  my $self = shift;
+  String::RewritePrefix->rewrite($self->_role_prefixes, @_);
 }
 
 =attr fixed_roles
 
-This attribute may be initialized with an arrayref of role names.  These roles
-will I<always> be composed in the classes built by the compositor.
+This attribute may be initialized with an arrayref of role names and/or
+L<Moose::Meta::Role> objects.  These roles will I<always> be composed in
+the classes built by the compositor.
 
-These names I<will> be rewritten by the role prefixes.
+Role names (but not Moose::Meta::Role objects) I<will> be rewritten by
+the role prefixes.
 
 =cut
 
@@ -159,8 +161,9 @@ has _memoization_table => (
 
   my $class = $compositor->class_for(
 
-    'Role::Name', # <-- will be expanded with role_prefixes
-
+    'Role::Name',          #  <-- will be expanded with role_prefixes
+    Other::Role->meta,     #  <-- will not be touched
+    
     [
       'Param::Role::Name', #  <-- will be expanded with role_prefixes
       'ApplicationName',   #  <-- will not be touched
@@ -169,14 +172,12 @@ has _memoization_table => (
   );
 
 This method will return a class with the roles passed to it.  They can be given
-either as names (which will be expanded according to C<L</role_prefixes>>) or
-as arrayrefs containing a role name, application name, and hashref of
-parameters.  In the arrayref form, the application name is just a name used to
-uniquely identify this application of a parameterized role, so that they can be
-applied multiple times with each application accounted for internally.
-
-Note that at present, passing Moose::Meta::Role objects is B<not> supported.
-This should change in the future.
+either as names (which will be expanded according to C<L</role_prefixes>>), as
+L<Moose::Meta::Role> objects, or as arrayrefs containing a role name,
+application name, and hashref of parameters.  In the arrayref form, the
+application name is just a name used to uniquely identify this application of
+a parameterized role, so that they can be applied multiple times with each
+application accounted for internally.
 
 =cut
 
@@ -199,7 +200,7 @@ sub class_for {
 
   while (@args) {
     my $name = shift @args;
-    if (ref $name) {
+    if (ref $name eq 'ARRAY') {
       my ($role_name, $moniker, $params) = @$name;
 
       my $full_name = $self->_rewrite_roles($role_name);
@@ -210,6 +211,9 @@ sub class_for {
 
       push @roles, $role_object;
       $name = $moniker;
+    } elsif (blessed $name and $name->DOES('Moose::Meta::Role')) {
+      push @roles, $name;
+      $name = $name->name;
     } else {
       push @role_class_names, $name;
     }
@@ -222,12 +226,15 @@ sub class_for {
 
   my $name = join q{::}, $self->class_basename, @all_names;
 
-  @role_class_names = (
-    $self->_rewrite_roles(
-      @role_class_names,
-      @{ $self->_fixed_roles },
-    ),
-  );
+  for my $r (@{ $self->_fixed_roles }) {
+    if (blessed $r and $r->DOES('Moose::Meta::Role')) {
+      push @roles, $r;
+    } else {
+      push @role_class_names, $r;
+    }
+  }
+
+  @role_class_names = $self->_rewrite_roles(@role_class_names);
 
   Class::MOP::load_class($_) for @role_class_names;
 
@@ -261,9 +268,11 @@ sub _memoization_key {
   my @k;
   while (@args) {
     my $arg = shift @args;
-    if (ref $arg) {
+    if (ref $arg eq 'ARRAY') {
       my ($role_name, $moniker, $params) = @$arg;
       push @k, "$moniker : { " . __hash_to_string($params) . " }";
+    } elsif (blessed $arg and $arg->DOES('Moose::Meta::Role')) {
+      push @k, $arg->name;
     } else {
       push @k, $arg;
     }
