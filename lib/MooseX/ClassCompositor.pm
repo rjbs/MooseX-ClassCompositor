@@ -145,8 +145,7 @@ has serial_counter => (
   init_arg => undef,
 );
 
-has _memoization_table => (
-  is  => 'ro',
+has memoization_table => (
   isa => 'HashRef',
   default  => sub {  {}  },
   traits   => [ 'Hash' ],
