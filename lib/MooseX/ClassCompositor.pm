@@ -156,6 +156,23 @@ has memoization_table => (
   init_arg => undef,
 );
 
+=attr forbid_meta_role_objects
+
+If true, an exception will be raised if a Moose::Meta::Role object is passed to
+C<L</class_for>>.  This is only rarely useful, such as if it's a strict
+requirement that the memoization table of the compositor be serializable and
+its contents reproduceable.
+
+Probably you don't need this.
+
+=cut
+
+has forbid_meta_role_objects => (
+  is  => 'ro',
+  isa => 'Bool',
+  default => 0,
+);
+
 =method class_for
 
   my $class = $compositor->class_for(
@@ -211,6 +228,9 @@ sub class_for {
       push @roles, $role_object;
       $name = $moniker;
     } elsif (blessed $name and $name->DOES('Moose::Meta::Role')) {
+      confess "this class compositor does not allow role objects"
+        if $self->forbid_meta_role_objects;
+
       push @roles, $name;
       $name = $name->name;
     } else {
