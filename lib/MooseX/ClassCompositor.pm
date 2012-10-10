@@ -163,7 +163,7 @@ has _memoization_table => (
 
     'Role::Name',          #  <-- will be expanded with role_prefixes
     Other::Role->meta,     #  <-- will not be touched
-    
+
     [
       'Param::Role::Name', #  <-- will be expanded with role_prefixes
       'ApplicationName',   #  <-- will not be touched
