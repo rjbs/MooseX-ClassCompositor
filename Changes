@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.006     2012-11-11 10:01:51 America/New_York
           replace some ->DOES with ->isa to work on 5.8 without further
           shenanigans
 
