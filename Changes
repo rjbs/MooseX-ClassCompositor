@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          replace some ->DOES with ->isa to work on 5.8 without further
+          shenanigans
 
 0.005     2012-10-09 22:42:13 America/New_York
           make it possible to pass Moose::Meta::Role objects to ->class_for
