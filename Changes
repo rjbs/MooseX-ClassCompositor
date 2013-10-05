@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.007     2013-10-05 09:01:06 America/New_York
+          update bugtracker and repo metadata
+
 0.006     2012-11-11 10:01:51 America/New_York
           replace some ->DOES with ->isa to work on 5.8 without further
           shenanigans
