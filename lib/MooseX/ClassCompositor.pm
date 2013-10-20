@@ -4,6 +4,7 @@ use Moose;
 
 use namespace::autoclean;
 
+use Class::Load;
 use Moose::Util qw(apply_all_roles);
 use Moose::Util::MetaRole ();
 use MooseX::StrictConstructor::Trait::Class;
@@ -220,7 +221,7 @@ sub class_for {
       my ($role_name, $moniker, $params) = @$name;
 
       my $full_name = $self->_rewrite_roles($role_name);
-      Class::MOP::load_class($full_name);
+      Class::Load::load_class($full_name);
       my $role_object = $full_name->meta->generate_role(
         parameters => $params,
       );
@@ -255,7 +256,7 @@ sub class_for {
 
   @role_class_names = $self->_rewrite_roles(@role_class_names);
 
-  Class::MOP::load_class($_) for @role_class_names;
+  Class::Load::load_class($_) for @role_class_names;
 
   if ($name->can('meta')) {
     $name .= "_" . $self->next_serial;

@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          replace Class::MOP::load_class with Class::Load
 
 0.007     2013-10-05 09:01:06 America/New_York
           update bugtracker and repo metadata
