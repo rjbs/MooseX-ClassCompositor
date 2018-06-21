@@ -1,6 +1,7 @@
 package MooseX::ClassCompositor;
-use Moose;
 # ABSTRACT: a factory that builds classes from roles
+
+use Moose;
 
 use namespace::autoclean;
 
@@ -256,7 +257,11 @@ sub class_for {
 
   @role_class_names = $self->_rewrite_roles(@role_class_names);
 
-  Class::Load::load_class($_) for @role_class_names;
+  # We only _try_ to load because in use, some of these are embedded in other
+  # packages.  While we'd like to stop relying on this, this is an expedient
+  # change.  After all, it'll fail during composition, if the role package is
+  # not properly set up.  -- rjbs, 2018-06-21
+  Class::Load::try_load_class($_) for @role_class_names;
 
   if ($name->can('meta')) {
     $name .= "_" . $self->next_serial;
