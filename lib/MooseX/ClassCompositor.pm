@@ -73,7 +73,7 @@ has class_basename => (
 
 This attribute, if given, must be a hashref of class metaroles that will be
 applied to newly-constructed classes with
-L<Moose::Util::MetaRole::apply_metaroles>.
+L<Moose::Util::MetaRole/apply_metaroles>.
 
 =cut
 
